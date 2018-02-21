@@ -7,13 +7,15 @@ import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
-import java.util.regex.*;
 
-import static java.util.regex.Pattern.*;
+import java.io.*;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.regex.*;
 
 
 public class Example extends TelegramLongPollingBot{
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         ApiContextInitializer.init(); // Инициализируем апи
         TelegramBotsApi botapi = new TelegramBotsApi();
         try {
@@ -22,19 +24,43 @@ public class Example extends TelegramLongPollingBot{
             e.printStackTrace();
         }
     }
+
     @Override
     public String getBotUsername() {
         return "Doni_junior_bot";
         //возвращаем юзера
     }
 
+
     @Override
     public void onUpdateReceived(Update e) {
-        Message msg = e.getMessage(); // Это нам понадобится
+        Message msg = e.getMessage();
         String txt = msg.getText();
         String ImgUrl  = "https://mafii.net/uploads/avatars/full/04May2013_11-36-07doniomafio.jpg";
         Pattern pattern = Pattern.compile("^[A-Za-z]|[А-Яа-я]+", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(txt);
+
+        try( Socket socket = new Socket("localhost", 3345);
+        DataOutputStream oos = new DataOutputStream(socket.getOutputStream());
+        DataInputStream ois = new DataInputStream(socket.getInputStream()); )
+            {
+
+        String clientCommand = txt;
+
+        oos.writeUTF(clientCommand);
+        oos.flush();
+        System.out.println("Клиент отправил сообщение боту на сервер: " + clientCommand);
+
+                String in = ois.readUTF();
+                System.out.println(in);
+
+            } catch (UnknownHostException a) {
+            // TODO Auto-generated catch block
+            a.printStackTrace();
+        } catch (IOException a) {
+            // TODO Auto-generated catch block
+            a.printStackTrace();
+        }
 
         if (txt.equals("/start")) {
             sendMsg(msg, "Привет!" + "\n" + "Меня зовут Дони и я помогаю мафии");
@@ -45,10 +71,8 @@ public class Example extends TelegramLongPollingBot{
         if (txt.equals("/nick")) {
             sendMsg(msg, "Doni junior");
         }
-        if (matcher.find()) {
-            sendMsg(msg, "Ты что-то пишешь не понятное, делаешь это без уважения и ждёшь моего ответа?");
-            sendImageFromUrl(ImgUrl, msg);
-        }
+
+
     }
 
     @Override
