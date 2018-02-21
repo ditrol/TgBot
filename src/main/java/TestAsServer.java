@@ -19,33 +19,15 @@ public class TestAsServer {
             DataInputStream in = new DataInputStream(client.getInputStream());
 
             while(!client.isClosed()){
-
-                System.out.println("Server reading from channel");
-
-
                 String entry = in.readUTF();
-
-                System.out.println("READ from client message - "+entry);
-
-                System.out.println("Server try writing to channel");
-
-                out.writeUTF("Server reply - "+entry + " - OK");
-                System.out.println("Server Wrote message to client.");
-
+                System.out.println("Получено от клиента сообщение - "+entry);
+                out.writeUTF("Ответ от бота: " + entry);
                 out.flush();
 
             }
-
-            System.out.println("Client disconnected");
-            System.out.println("Closing connections & channels.");
-
             in.close();
             out.close();
-
             client.close();
-
-
-            System.out.println("Closing connections & channels - DONE.");
         } catch (IOException e) {
             e.printStackTrace();
         }

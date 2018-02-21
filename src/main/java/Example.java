@@ -62,6 +62,7 @@ public class Example extends TelegramLongPollingBot{
             oos.flush();
             System.out.println("Клиент отправил сообщение боту на сервер: " + clientCommand);
             String in = ois.readUTF();
+            sendMsg(msg, in);
             System.out.println(in);
 
 
