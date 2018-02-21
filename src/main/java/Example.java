@@ -19,6 +19,7 @@ public class Example extends TelegramLongPollingBot{
     Socket socket;
     DataOutputStream oos;
     DataInputStream ois;
+
     {
         try {
             socket = new Socket("localhost", 3345);
@@ -28,6 +29,8 @@ public class Example extends TelegramLongPollingBot{
             e.printStackTrace();
         }
     }
+
+
 
     public static void main(String[] args) throws IOException {
         ApiContextInitializer.init(); // Инициализируем апи
@@ -53,39 +56,31 @@ public class Example extends TelegramLongPollingBot{
         String ImgUrl  = "https://mafii.net/uploads/avatars/full/04May2013_11-36-07doniomafio.jpg";
         Pattern pattern = Pattern.compile("^[A-Za-z]|[А-Яа-я]+", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(txt);
-
-
-            String clientCommand = txt;
-
-        try {
-            oos.writeUTF(clientCommand);
-            oos.flush();
-            System.out.println("Клиент отправил сообщение боту на сервер: " + clientCommand);
-            String in = ois.readUTF();
-            sendMsg(msg, in);
-            System.out.println(in);
-
-
-
-        } catch (IOException e1) {
-            e1.printStackTrace();
-        }
-
-
+        String clientCommand = txt;
 
         if (txt.equals("/start")) {
             sendMsg(msg, "Привет!" + "\n" + "Меня зовут Дони и я помогаю мафии");
         }
-        if (txt.equals("/token")) {
+        else if (txt.equals("/token")) {
             sendMsg(msg, "460513032:AAExwH4pXFmf6ub8vIJzebijsYWmiAArat4");
         }
-        if (txt.equals("/nick")) {
+        else if (txt.equals("/nick")) {
             sendMsg(msg, "Doni junior");
         }
 
-        if (matcher.find()) {
-                       sendMsg(msg, "Ушло на сервер");
-                 }
+        else  {
+            try {
+                oos.writeUTF(clientCommand);
+                oos.flush();
+                System.out.println("Клиент отправил сообщение боту на сервер: " + clientCommand);
+                String in = ois.readUTF();
+                sendMsg(msg, in);
+                System.out.println(in);
+
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        }
 
 
     }
