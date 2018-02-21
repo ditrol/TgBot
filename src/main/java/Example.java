@@ -15,6 +15,20 @@ import java.util.regex.*;
 
 
 public class Example extends TelegramLongPollingBot{
+
+    Socket socket;
+    DataOutputStream oos;
+    DataInputStream ois;
+    {
+        try {
+            socket = new Socket("localhost", 3345);
+            oos = new DataOutputStream(socket.getOutputStream());
+            ois = new DataInputStream(socket.getInputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void main(String[] args) throws IOException {
         ApiContextInitializer.init(); // Инициализируем апи
         TelegramBotsApi botapi = new TelegramBotsApi();
@@ -40,27 +54,23 @@ public class Example extends TelegramLongPollingBot{
         Pattern pattern = Pattern.compile("^[A-Za-z]|[А-Яа-я]+", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(txt);
 
-        try( Socket socket = new Socket("localhost", 3345);
-        DataOutputStream oos = new DataOutputStream(socket.getOutputStream());
-        DataInputStream ois = new DataInputStream(socket.getInputStream()); )
-            {
 
-        String clientCommand = txt;
+            String clientCommand = txt;
 
-        oos.writeUTF(clientCommand);
-        oos.flush();
-        System.out.println("Клиент отправил сообщение боту на сервер: " + clientCommand);
+        try {
+            oos.writeUTF(clientCommand);
+            oos.flush();
+            System.out.println("Клиент отправил сообщение боту на сервер: " + clientCommand);
+            String in = ois.readUTF();
+            System.out.println(in);
 
-                String in = ois.readUTF();
-                System.out.println(in);
 
-            } catch (UnknownHostException a) {
-            // TODO Auto-generated catch block
-            a.printStackTrace();
-        } catch (IOException a) {
-            // TODO Auto-generated catch block
-            a.printStackTrace();
+
+        } catch (IOException e1) {
+            e1.printStackTrace();
         }
+
+
 
         if (txt.equals("/start")) {
             sendMsg(msg, "Привет!" + "\n" + "Меня зовут Дони и я помогаю мафии");
@@ -71,6 +81,10 @@ public class Example extends TelegramLongPollingBot{
         if (txt.equals("/nick")) {
             sendMsg(msg, "Doni junior");
         }
+
+        if (matcher.find()) {
+                       sendMsg(msg, "Ушло на сервер");
+                 }
 
 
     }
