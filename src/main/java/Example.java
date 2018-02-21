@@ -58,8 +58,10 @@ public class Example extends TelegramLongPollingBot{
         Matcher matcher = pattern.matcher(txt);
         String clientCommand = txt;
 
-        if (txt.equals("/start")) {
-            sendMsg(msg, "Привет!" + "\n" + "Меня зовут Дони и я помогаю мафии");
+        if (txt.equals("/help")) {
+            sendMsg(msg,"Меня зовут Дони и я помогаю мафии" + "\n"
+                    + "/nick - покажет тебе мою кличку в кругах семьи" + "\n"
+                    + "Или у тебя есть какие-то вопросы? Вперёд, спрашивай.");
         }
         else if (txt.equals("/token")) {
             sendMsg(msg, "460513032:AAExwH4pXFmf6ub8vIJzebijsYWmiAArat4");
