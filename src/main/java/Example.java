@@ -1,4 +1,5 @@
-
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.http.Consts;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -18,10 +19,10 @@ import org.telegram.telegrambots.exceptions.TelegramApiException;
 
 import java.io.*;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class Example extends TelegramLongPollingBot{
@@ -61,19 +62,40 @@ public class Example extends TelegramLongPollingBot{
         //возвращаем юзера
     }
 
+public String Translate (String lang, String txt) throws IOException {
+
+    HttpClient client = new DefaultHttpClient();
+    HttpPost httpPost = new HttpPost(PATH);
+    httpPost.setHeader("User-Agent", "Mozilla/5.0");
+
+
+    List<NameValuePair> params = new ArrayList<>();
+    params.add(new BasicNameValuePair("key", API_KEY));
+    params.add(new BasicNameValuePair("lang", lang));
+    params.add(new BasicNameValuePair("text", txt));
+
+    httpPost.setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
+
+    HttpResponse httpResponse = client.execute(httpPost);
+    BufferedReader br = new BufferedReader(new InputStreamReader(httpResponse
+            .getEntity().getContent(), "UTF-8"));
+    String JSonWord = br.readLine();
+
+        return JSonWord;
+}
+
 
     @Override
     public void onUpdateReceived(Update e) {
         Message msg = e.getMessage();
         String txt = msg.getText();
         String ImgUrl  = "https://mafii.net/uploads/avatars/full/04May2013_11-36-07doniomafio.jpg";
-        Pattern pattern = Pattern.compile("^[A-Za-z]|[А-Яа-я]+", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(txt);
+        Pattern RuPattern = Pattern.compile("^[А-Яа-я]+", Pattern.CASE_INSENSITIVE);
+        Pattern EnPattern = Pattern.compile("^[A-Za-z]+", Pattern.CASE_INSENSITIVE);
+        Matcher Rumatcher = RuPattern.matcher(txt);
+        Matcher Enmatcher = EnPattern.matcher(txt);
         String clientCommand = txt;
 
-        HttpClient client = new DefaultHttpClient();
-        HttpPost httpPost = new HttpPost(PATH);
-        httpPost.setHeader("User-Agent", "Mozilla/5.0");
 
         if (txt.equals("/help")) {
             sendMsg(msg,"Меня зовут Дони и я помогаю мафии" + "\n"
@@ -90,26 +112,27 @@ public class Example extends TelegramLongPollingBot{
 
         else  {
             try {
+                if (Rumatcher.find()) {
 
-                List<NameValuePair> params = new ArrayList<>();
-                params.add(new BasicNameValuePair("key", API_KEY));
-                params.add(new BasicNameValuePair("lang", "ru-en"));
-                params.add(new BasicNameValuePair("text", clientCommand));
+                    JsonObject jsonObject = new JsonParser().parse(Translate("ru-en", clientCommand)).getAsJsonObject();
+                    oos.writeUTF(jsonObject.get("text").getAsString());
+                    oos.flush();
 
-                httpPost.setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
+                    System.out.println("Клиент отправил сообщение боту на сервер: " + clientCommand);
+                    String in = ois.readUTF();
+                    JsonObject jsonObject1 = new JsonParser().parse(Translate("en-ru", in)).getAsJsonObject();
+                    sendMsg(msg, jsonObject1.get("text").getAsString());
+                    System.out.println(jsonObject1.get("text").getAsString());
 
-                HttpResponse httpResponse = client.execute(httpPost);
-                BufferedReader br = new BufferedReader(new InputStreamReader(httpResponse
-                        .getEntity().getContent(), "UTF-8"));
+                } else if (Enmatcher.find()) {
 
-                System.out.println(br.readLine());
+                    oos.writeUTF(clientCommand);
+                    oos.flush();
+                    System.out.println("Клиент отправил сообщение боту на сервер: " + clientCommand);
+                    String in = ois.readUTF();
+                    sendMsg(msg, in);
+                }
 
-                oos.writeUTF(br.readLine());
-                oos.flush();
-                System.out.println("Клиент отправил сообщение боту на сервер: " + clientCommand);
-                String in = ois.readUTF();
-                sendMsg(msg, in);
-                System.out.println(in);
 
             } catch (IOException e1) {
                 e1.printStackTrace();
