@@ -133,7 +133,6 @@ public String Translate (String lang, String txt) throws IOException {
                     sendMsg(msg, in);
                 }
 
-
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
