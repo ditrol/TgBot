@@ -1,4 +1,12 @@
 
+import org.apache.http.Consts;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
@@ -11,6 +19,8 @@ import org.telegram.telegrambots.exceptions.TelegramApiException;
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.*;
 
 
@@ -19,6 +29,9 @@ public class Example extends TelegramLongPollingBot{
     Socket socket;
     DataOutputStream oos;
     DataInputStream ois;
+    private static final String API_KEY = "trnsl.1.1.20180221T210655Z.da998608fdf30f55.a0d6513b7d5edec6ac5f1b3e72be7aec8bcc01d0\n";
+    private static final String PATH = "https://translate.yandex.net/api/v1.5/tr.json/translate";
+
 
     {
         try {
@@ -58,6 +71,10 @@ public class Example extends TelegramLongPollingBot{
         Matcher matcher = pattern.matcher(txt);
         String clientCommand = txt;
 
+        HttpClient client = new DefaultHttpClient();
+        HttpPost httpPost = new HttpPost(PATH);
+        httpPost.setHeader("User-Agent", "Mozilla/5.0");
+
         if (txt.equals("/help")) {
             sendMsg(msg,"Меня зовут Дони и я помогаю мафии" + "\n"
                     + "/nick - покажет тебе мою кличку в кругах семьи" + "\n"
@@ -70,9 +87,24 @@ public class Example extends TelegramLongPollingBot{
             sendMsg(msg, "Doni junior");
         }
 
+
         else  {
             try {
-                oos.writeUTF(clientCommand);
+
+                List<NameValuePair> params = new ArrayList<>();
+                params.add(new BasicNameValuePair("key", API_KEY));
+                params.add(new BasicNameValuePair("lang", "ru-en"));
+                params.add(new BasicNameValuePair("text", clientCommand));
+
+                httpPost.setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
+
+                HttpResponse httpResponse = client.execute(httpPost);
+                BufferedReader br = new BufferedReader(new InputStreamReader(httpResponse
+                        .getEntity().getContent(), "UTF-8"));
+
+                System.out.println(br.readLine());
+
+                oos.writeUTF(br.readLine());
                 oos.flush();
                 System.out.println("Клиент отправил сообщение боту на сервер: " + clientCommand);
                 String in = ois.readUTF();
